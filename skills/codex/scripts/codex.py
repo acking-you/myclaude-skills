@@ -27,17 +27,17 @@ STDIN_THRESHOLD = 800  # Auto-switch to stdin for prompts longer than 800 chars
 
 
 def log_error(message: str):
-    """输出错误信息到 stderr"""
+    """Write the error message to stderr"""
     sys.stderr.write(f"ERROR: {message}\n")
 
 
 def log_warn(message: str):
-    """输出警告信息到 stderr"""
+    """Write the warning message to stderr"""
     sys.stderr.write(f"WARN: {message}\n")
 
 
 def resolve_timeout() -> int:
-    """解析超时配置（秒）"""
+    """Parse timeout configuration (seconds)"""
     raw = os.environ.get('CODEX_TIMEOUT', '')
     if not raw:
         return DEFAULT_TIMEOUT
@@ -47,7 +47,7 @@ def resolve_timeout() -> int:
         if parsed <= 0:
             log_warn(f"Invalid CODEX_TIMEOUT '{raw}', falling back to {DEFAULT_TIMEOUT}s")
             return DEFAULT_TIMEOUT
-        # 环境变量是毫秒，转换为秒
+        # Environment variable uses milliseconds; convert to seconds
         return parsed // 1000 if parsed > 10000 else parsed
     except ValueError:
         log_warn(f"Invalid CODEX_TIMEOUT '{raw}', falling back to {DEFAULT_TIMEOUT}s")
@@ -55,7 +55,7 @@ def resolve_timeout() -> int:
 
 
 def normalize_text(text) -> Optional[str]:
-    """规范化文本：字符串或字符串数组"""
+    """Normalize text from either a string or list of strings"""
     if isinstance(text, str):
         return text
     if isinstance(text, list):
@@ -64,12 +64,12 @@ def normalize_text(text) -> Optional[str]:
 
 
 def parse_args():
-    """解析命令行参数"""
+    """Parse command-line arguments"""
     if len(sys.argv) < 2:
         log_error('Task required')
         sys.exit(1)
 
-    # 检测是否为 resume 模式
+    # Detect resume mode
     if sys.argv[1] == 'resume':
         if len(sys.argv) < 4:
             log_error('Resume mode requires: resume <session_id> <task>')
@@ -92,11 +92,11 @@ def parse_args():
 
 def build_codex_args(params: dict, use_stdin: bool) -> list:
     """
-    构建 codex CLI 参数
+    Build codex CLI arguments
 
     Args:
-        params: 参数字典
-        use_stdin: 是否使用 stdin 模式（不在命令行参数中传递 task）
+        params: Parameter dictionary
+        use_stdin: Whether stdin mode is enabled (task not passed via argv)
     """
     if params['mode'] == 'resume':
         if use_stdin:
@@ -106,7 +106,7 @@ def build_codex_args(params: dict, use_stdin: bool) -> list:
                 '--json',
                 'resume',
                 params['session_id'],
-                '-'  # 从 stdin 读取
+                '-'  # Read from stdin
             ]
         else:
             return [
@@ -128,7 +128,7 @@ def build_codex_args(params: dict, use_stdin: bool) -> list:
         ]
 
         if use_stdin:
-            base_args.append('-')  # 从 stdin 读取
+            base_args.append('-')  # Read from stdin
         else:
             base_args.append(params['task'])
 
@@ -152,22 +152,22 @@ def main():
     last_agent_message: Optional[str] = None
 
     try:
-        # 启动 codex 子进程
+        # Launch the codex subprocess
         process = subprocess.Popen(
             codex_args,
             stdin=subprocess.PIPE if use_stdin else None,  # **FIX: Enable stdin**
             stdout=subprocess.PIPE,
-            stderr=sys.stderr,  # 错误直接透传到 stderr
+            stderr=sys.stderr,  # Forward stderr directly
             text=True,
-            bufsize=1  # 行缓冲
+            bufsize=1  # Line buffering
         )
 
-        # **FIX: 如果使用 stdin 模式，写入任务到 stdin**
+        # **FIX: When stdin mode is enabled, write the task to stdin**
         if use_stdin:
             process.stdin.write(params['task'])
             process.stdin.close()
 
-        # 逐行解析 JSON 输出
+        # Parse JSON output line by line
         for line in process.stdout:
             line = line.strip()
             if not line:
@@ -176,11 +176,11 @@ def main():
             try:
                 event = json.loads(line)
 
-                # 捕获 thread_id
+                # Capture thread_id
                 if event.get('type') == 'thread.started':
                     thread_id = event.get('thread_id')
 
-                # 捕获 agent_message
+                # Capture agent_message
                 if (event.get('type') == 'item.completed' and
                     event.get('item', {}).get('type') == 'agent_message'):
                     text = normalize_text(event['item'].get('text'))
@@ -190,15 +190,15 @@ def main():
             except json.JSONDecodeError:
                 log_warn(f"Failed to parse line: {line}")
 
-        # 等待进程结束
+        # Wait for the process to finish
         returncode = process.wait(timeout=timeout_sec)
 
         if returncode == 0:
             if last_agent_message:
-                # 输出 agent_message
+                # Print agent_message
                 sys.stdout.write(f"{last_agent_message}\n")
 
-                # 输出 session_id（如果存在）
+                # Print session_id when available
                 if thread_id:
                     sys.stdout.write(f"\n---\nSESSION_ID: {thread_id}\n")
 

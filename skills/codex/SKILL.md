@@ -18,19 +18,19 @@ Execute Codex CLI commands and parse structured JSON responses. Supports file re
 
 ## Usage
 
-**推荐方式**（使用 uv run，自动管理 Python 环境）：
+**Recommended approach** (use uv run to manage the Python environment automatically):
 ```bash
 uv run ~/.claude/skills/codex/scripts/codex.py "<task>" [model] [working_dir]
 ```
 
-**备选方式**（直接执行或使用 Python）：
+**Alternative approach** (run directly or via Python):
 ```bash
 ~/.claude/skills/codex/scripts/codex.py "<task>" [model] [working_dir]
-# 或
+# Or
 python3 ~/.claude/skills/codex/scripts/codex.py "<task>" [model] [working_dir]
 ```
 
-恢复会话:
+Resume session:
 ```bash
 uv run ~/.claude/skills/codex/scripts/codex.py resume <session_id> "<task>" [model] [working_dir]
 ```
