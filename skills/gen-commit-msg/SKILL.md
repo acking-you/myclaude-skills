@@ -138,8 +138,15 @@ read -p "Commit these changes? (y/n): " response
 
 ### Step 5: Execute Commit
 
+**CRITICAL**: The commit message MUST be clean and professional. DO NOT include:
+- `🤖 Generated with [Claude Code]` markers
+- `Co-Authored-By: Claude` attributions
+- Any other tool-generated metadata or signatures
+
+These add no value and clutter the commit history.
+
 ```bash
-# Commit with generated message
+# Commit with generated message (NO extra metadata)
 git commit -m "$(cat <<'EOF'
 <generated_message>
 EOF
