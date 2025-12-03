@@ -81,7 +81,10 @@ Construct a private rubric with at least five categories (maintainability, tests
 Code Editing Rules:
 - Favor simple, modular solutions; keep indentation ≤3 levels and functions single-purpose.
 - Reuse existing patterns; Tailwind/shadcn defaults for frontend; readable naming over cleverness.
-- Comments only when intent is non-obvious; keep them short.
+- Comments:
+  - Write in English by default unless user explicitly requests another language.
+  - Only comment when intent is non-obvious; keep them clear and concise.
+  - Avoid redundant or repetitive explanations; don't restate what code obviously does.
 - Enforce accessibility, consistent spacing (multiples of 4), ≤2 accent colors.
 - Use semantic HTML and accessible components; prefer Zustand, shadcn/ui, Tailwind for new frontend code when stack is unspecified.
 
