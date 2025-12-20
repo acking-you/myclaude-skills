@@ -26,6 +26,23 @@ Generate professional hand-drawn style diagrams in Excalidraw JSON format.
 
 5. **No overlaps (MUST follow)**: Arrows must not cross unrelated components; labels must not overlap components. See "Layout Optimization" section for strategies.
 
+6. **Container binding (MUST follow)**: When connecting to grouped/nested structures, arrows must bind to the outer container (background region), NOT to internal elements:
+   - If a phase/subgraph contains multiple internal steps, arrows from outside should connect to the container box
+   - Internal element connections stay internal; external connections go to the container
+   - Example: `dag → main-bg` (container), NOT `dag → read-main` (internal element)
+   - This keeps the diagram semantically correct and visually clean
+
+7. **Sibling layout (MUST follow)**: Elements at the same hierarchy level must be placed horizontally (same row), NOT vertically:
+   - Siblings represent parallel/alternative paths (e.g., TCP and HTTP handlers)
+   - Vertical stacking implies sequential execution, which is semantically wrong for siblings
+   - Use fork arrows from parent to horizontally-aligned children
+
+8. **Nested structure clarity (MUST follow)**: When a container has internal elements, ensure clear hierarchy and no overlaps:
+   - Internal elements must have proper vertical spacing with arrows showing call sequence
+   - Text labels must fit entirely within their rectangles (calculate: `rect.height >= text.height + 20`)
+   - Reference annotations (file paths, line numbers) go OUTSIDE the box (below or to the right)
+   - Sub-containers within a parent should be visually distinct (different opacity or color shade)
+
 ## Mandatory Workflow (MUST follow before writing JSON)
 
 **Step 1: Arrow Path Analysis**
@@ -244,5 +261,9 @@ Arrow analysis:
 ## Notes
 
 - IDs must be unique across the file
-- `fontFamily`: 1=Virgil (hand-drawn), 2=Helvetica, 3=Cascadia
+- `fontFamily`: 1=Virgil (hand-drawn), 2=Helvetica, 3=Cascadia, 4=Comic Shanns (recommended for hand-drawn style)
+- `strokeWidth` usage in software diagrams:
+  - `1` (thin): background regions, container borders, secondary connections
+  - `2` (normal/default): primary components, main flow arrows
+  - `4` (bold): emphasis, critical paths, highlighted elements
 - Dashed arrows: add `"strokeStyle": "dashed"`
