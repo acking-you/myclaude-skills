@@ -43,6 +43,12 @@ Generate professional hand-drawn style diagrams in Excalidraw JSON format.
    - Reference annotations (file paths, line numbers) go OUTSIDE the box (below or to the right)
    - Sub-containers within a parent should be visually distinct (different opacity or color shade)
 
+9. **Arrow path space reservation (MUST follow)**: When arrows connect nested containers, ensure sufficient space for arrow routing:
+   - Problem: If containers are too close, arrows may pass through target containers instead of connecting to their edges
+   - Solution: Proactively enlarge parent containers to leave 40-60px gap between child containers and the next target
+   - When multiple sub-containers need to merge arrows to a shared target below, calculate: `target.y >= max(child.y + child.height) + 60`
+   - If arrow crossing occurs after generation, increase container heights rather than using complex bypass paths
+
 ## Mandatory Workflow (MUST follow before writing JSON)
 
 **Step 1: Arrow Path Analysis**
