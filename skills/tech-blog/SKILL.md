@@ -5,206 +5,120 @@ description: Write technical blog posts with source code analysis. Use when user
 
 # Technical Blog Writing Skill
 
-Write technical blog posts that explain system internals and source code implementation. Focus on progressive explanation, accurate analysis, and clear structure.
+Write technical blog posts that explain system internals and source code implementation.
 
 ## When to Use
 
 - Explaining system internals or implementation details
 - Source code analysis and walkthrough
-- Technical concept explanation with code examples
 - Comparing different implementations or approaches
 
 ## Core Principles
 
-### 1. Progressive Explanation (循序渐进)
-
+### 1. Progressive Explanation
 - Start with the problem, not the solution
-- Build concepts layer by layer
-- Each section should naturally lead to the next
-- Add transition sentences between sections
+- Build concepts layer by layer; each section leads to the next
+- Explain "why" not just "what"
 
-**Bad**: "V2 uses permutation to restore order" (assumes reader knows context)
-**Good**: "After understanding how the main branch outputs sorted results, we need to solve a new problem: how to align the lazy branch's data back to this order?"
+**Bad**: "V2 uses permutation to restore order"
+**Good**: "After the main branch outputs sorted results, we need to solve: how to align the lazy branch's data back to this order?"
 
-### 2. Technical Accuracy Over Marketing
-
-- Avoid superlatives and marketing language
-- Use precise technical terms
+### 2. Technical Accuracy
+- Avoid marketing language; use precise terms
 - Back claims with data or code references
-- Acknowledge limitations and trade-offs
+- Explore source code before writing; don't write from memory
 
-**Bad**: "This revolutionary optimization achieves incredible performance gains"
+**Bad**: "This revolutionary optimization achieves incredible gains"
 **Good**: "V2 reduces order restoration from O(n log n) to O(n) by using inverted_permutation"
 
 ### 3. Balanced Comparison
+- Analyze BOTH sides thoroughly; don't cherry-pick
+- Identify what's truly different vs. equivalent
 
-When comparing approaches, analyze BOTH sides thoroughly:
-- Don't cherry-pick advantages of one approach
-- Understand the mechanisms of all approaches before comparing
-- Identify what's truly different vs. what's equivalent
+**Bad**: "V2 is faster because it has mark-level filtering" (if both have it)
+**Good**: "Both support mark-level filtering. The key difference is order restoration: V2 uses O(n) permutation while AST rewrite requires O(n log n) sort"
 
-**Bad**: "V2 is faster because it has mark-level filtering" (if the other approach also has it)
-**Good**: "Both V2 and AST rewrite support mark-level filtering. The key difference is order restoration: V2 uses O(n) permutation while AST rewrite requires O(n log n) secondary sort"
+### 4. Design Decision Explanation
+Explain WHY a design choice was made:
+- What problem does it solve? What alternatives exist? What trade-offs?
 
-### 4. Data-Driven Conclusions
+**Bad**: "V2 uses __global_row_index to identify rows"
+**Good**: "V2 uses __global_row_index instead of _part_index + _part_offset because: single dimension sorting, range query friendly, aligns with Mark mechanism"
 
-- Don't exaggerate differences
-- Consider scale and context
-- Identify what's the "big picture" vs. minor details
+### 5. Dependency Mechanism Explanation
+Explain what makes a feature work:
+- What underlying mechanisms does it depend on?
+- What assumptions? What if violated?
 
-**Bad**: "V2 uses 20% more memory due to metadata overhead"
-**Good**: "V2 uses ~140 MiB more memory (887 vs 747 MiB). This is mainly metadata overhead; as data volume grows, this percentage shrinks since real column data dominates memory usage"
+**Example**: `__global_row_index` depends on StorageSnapshot (holds shared_ptr to Parts). If Parts were merged during query, indices would become invalid.
+
+### 6. Terminology Accuracy
+- Verify terms by exploring source code or official docs
+- Don't assume terms are interchangeable
+- Define domain-specific terms when introducing them
+
+**Bad**: "Distributed queries send to each Replica" (if actually Shards)
+**Good**: "Queries send to each Shard (data partition). Within each Shard, one Replica (data copy) is selected."
 
 ## Document Structure
-
-### Required Sections
 
 ```markdown
 # [Topic] Deep Dive
 
-Brief introduction: what this article covers and why it matters.
-
+Brief intro + why it matters.
 > **Code Version**: Based on [project] `vX.Y.Z` tag.
 
-## Table of Contents
-[Auto-generated or manual]
-
-## 1. Introduction
-- Problem statement with concrete example
-- Why this matters (performance, usability, etc.)
-- Scope of this article
-
+## 1. Introduction (problem + scope)
 ## 2. Background / Prerequisites
-- Concepts reader needs to understand
-- Related systems or components
-- Link to external resources if needed
-
-## 3-N. Core Content
-[Organized by logical flow, not by code structure]
-
+## 3-N. Core Content (by data flow, not code structure)
 ## N+1. Comparison / Trade-offs
-- Compare approaches fairly
-- Use tables for structured comparison
-- Explain WHY differences exist
-
-## N+2. Debugging / Troubleshooting (optional)
-- How to verify the behavior
-- Common issues and solutions
-
-## N+3. Code Index
-- Key files and their purposes
-- Key functions with line numbers
-- Version/tag reference
-
+## N+2. Code Index (files, functions, line numbers)
 ## References
-- Official docs, PRs, issues
-- Related blog posts
 ```
 
-### Section Transitions
-
-Every section should have a natural connection to the next:
-
-```markdown
-### 1.4 Trigger Conditions
-
-[Content about when optimization triggers]
-
-### 1.5 Key Components
-
-After meeting the above conditions, the optimizer uses these components to implement lazy materialization:
-
-[Component table]
-```
+**Key guidelines**:
+- Chapter 1 = Introduction + Navigation only, no implementation details
+- Organize content by data flow, not by code components
+- Add reading suggestions for sections that depend on later content:
+  `> ⏭️ If reading first time, skip to §X, return here when needed.`
 
 ## Writing Guidelines
 
 ### Code Examples
-
-- Show real code from the codebase, not pseudo-code (unless simplifying for clarity)
-- Include file path and line numbers
-- Explain what the code does, not just show it
-
-```markdown
-`prepareMainChunk()` extracts row indices and generates the permutation array:
-
-​```cpp
-// src/Processors/Transforms/LazilyMaterializingTransform.cpp:242-263
-void prepareMainChunk()
-{
-    // 1. Merge main branch chunks
-    auto chunk = Squashing::squash(std::move(chunks));
-
-    // 2. Extract __global_row_index column
-    auto index_col = chunk.detachColumn("__global_row_index");
-
-    // 3. Sort by __global_row_index to generate permutation
-    stableGetPermutation(index_col, permutation);
-    // ...
-}
-​```
-```
+- Real code with file path and line numbers
+- Explain what it does, not just show it
 
 ### Diagrams
-
-- Use ASCII diagrams for simple flows (renders everywhere)
-- Use Mermaid for complex diagrams (if supported)
-- Every diagram needs explanation text
-
-```markdown
-​```
-┌─────────────────────────────────────────────────────────────┐
-│              JoinLazyColumnsStep                             │
-│         ┌──────────┴──────────┐                              │
-│         │                     │                              │
-│      Main Branch          Lazy Branch                        │
-│         │                     │                              │
-│    LimitStep          LazilyReadFromMergeTree                │
-└─────────────────────────────────────────────────────────────┘
-​```
-
-The diagram shows V2's dual-branch architecture: main branch handles sorting and filtering, lazy branch reads deferred columns concurrently.
-```
+- ASCII for simple flows; every diagram needs explanation text
 
 ### Tables
+- Use for comparisons, performance data, component summaries
 
-Use tables for:
-- Feature comparisons
-- Performance data
-- Component summaries
+## Common Pitfalls
 
-```markdown
-| Metric | V1 | V2 | AST Rewrite |
-|--------|----|----|-------------|
-| Read granularity | Row-by-row | Batch (mark) | Batch |
-| Concurrency | No | Yes | Yes |
-| Secondary sort | No | No | **Yes** |
-```
-
-## Common Mistakes to Avoid
-
-1. **Abrupt transitions**: Jumping between topics without connection
-2. **One-sided comparison**: Only analyzing one approach in detail
-3. **Exaggerated claims**: "20% more memory" when it's actually minor overhead
-4. **Missing context**: Showing code without explaining its role
-5. **Redundant sections**: Repeating the same information in different places
-6. **Deprecated content**: Spending too much time on obsolete implementations
+| Pitfall | Solution |
+|---------|----------|
+| Abrupt transitions | Add connection sentences between sections |
+| One-sided comparison | Analyze both approaches before comparing |
+| Exaggerated claims | Use concrete numbers with context |
+| Code without context | Explain the code's role in the system |
+| Too much detail in Chapter 1 | Chapter 1 is navigation only |
+| Examples use unexplained concepts | Use well-known examples (FilterTransform, not LazilyMaterializingTransform) |
+| Prerequisites too long | State relationship to main topic at each section's start |
+| Inaccurate terminology | Explore source code; cite authoritative sources |
 
 ## Verification Checklist
 
-Before finalizing:
-
-- [ ] Each section flows naturally to the next
-- [ ] All comparisons analyze both sides fairly
-- [ ] Data claims are accurate and contextualized
+- [ ] Sections flow naturally; transitions are smooth
+- [ ] Comparisons analyze both sides fairly
 - [ ] Code examples include file paths and line numbers
 - [ ] Diagrams have explanatory text
-- [ ] No marketing language or exaggeration
-- [ ] Deprecated features are briefly mentioned, not detailed
-- [ ] Code version/tag is specified
+- [ ] No marketing language; claims backed by data
+- [ ] Code version/tag specified
+- [ ] Terminology verified against source code
 
 ## Output
 
-- Location: `docs/`, `ai_docs/`, or project-specific docs folder
-- Filename: `[topic-name].md` or `[topic-name]-deep-dive.md`
-- Language: Match user's language preference (Chinese/English)
+- Location: `docs/`, `ai_docs/`, or project-specific folder
+- Filename: `[topic-name].md`
+- Language: Match user's preference

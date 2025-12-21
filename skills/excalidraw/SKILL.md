@@ -109,7 +109,7 @@ After generating JSON, mentally trace each arrow path and confirm:
 }
 ```
 
-**Text** (width/height required)
+**Text** (width/height required, fontFamily: 4 required)
 ```json
 {
   "id": "unique-id",
@@ -118,7 +118,7 @@ After generating JSON, mentally trace each arrow path and confirm:
   "width": 80, "height": 24,
   "text": "Label",
   "fontSize": 16,
-  "fontFamily": 1,
+  "fontFamily": 4,
   "textAlign": "center"
 }
 ```
@@ -243,15 +243,15 @@ Arrow analysis:
   "source": "https://excalidraw.com",
   "elements": [
     {"id": "a", "type": "rectangle", "x": 100, "y": 150, "width": 140, "height": 60, "backgroundColor": "#a5d8ff", "strokeColor": "#1971c2", "roundness": {"type": 3}, "boundElements": [{"id": "arr1", "type": "arrow"}, {"id": "arr3", "type": "arrow"}]},
-    {"id": "a-label", "type": "text", "x": 155, "y": 168, "width": 30, "height": 24, "text": "A", "fontSize": 16, "fontFamily": 1, "textAlign": "center"},
+    {"id": "a-label", "type": "text", "x": 155, "y": 168, "width": 30, "height": 24, "text": "A", "fontSize": 16, "fontFamily": 4, "textAlign": "center"},
     {"id": "b", "type": "rectangle", "x": 340, "y": 150, "width": 140, "height": 60, "backgroundColor": "#b2f2bb", "strokeColor": "#2f9e44", "roundness": {"type": 3}, "boundElements": [{"id": "arr1", "type": "arrow"}, {"id": "arr2", "type": "arrow"}]},
-    {"id": "b-label", "type": "text", "x": 395, "y": 168, "width": 30, "height": 24, "text": "B", "fontSize": 16, "fontFamily": 1, "textAlign": "center"},
+    {"id": "b-label", "type": "text", "x": 395, "y": 168, "width": 30, "height": 24, "text": "B", "fontSize": 16, "fontFamily": 4, "textAlign": "center"},
     {"id": "c", "type": "rectangle", "x": 580, "y": 150, "width": 140, "height": 60, "backgroundColor": "#d0bfff", "strokeColor": "#7048e8", "roundness": {"type": 3}, "boundElements": [{"id": "arr2", "type": "arrow"}, {"id": "arr3", "type": "arrow"}]},
-    {"id": "c-label", "type": "text", "x": 635, "y": 168, "width": 30, "height": 24, "text": "C", "fontSize": 16, "fontFamily": 1, "textAlign": "center"},
+    {"id": "c-label", "type": "text", "x": 635, "y": 168, "width": 30, "height": 24, "text": "C", "fontSize": 16, "fontFamily": 4, "textAlign": "center"},
     {"id": "arr1", "type": "arrow", "x": 245, "y": 180, "points": [[0, 0], [90, 0]], "endArrowhead": "arrow", "startBinding": {"elementId": "a", "focus": 0, "gap": 5}, "endBinding": {"elementId": "b", "focus": 0, "gap": 5}},
     {"id": "arr2", "type": "arrow", "x": 485, "y": 180, "points": [[0, 0], [90, 0]], "endArrowhead": "arrow", "startBinding": {"elementId": "b", "focus": 0, "gap": 5}, "endBinding": {"elementId": "c", "focus": 0, "gap": 5}},
     {"id": "arr3", "type": "arrow", "x": 650, "y": 145, "points": [[0, 0], [0, -60], [-480, -60], [-480, 0]], "endArrowhead": "arrow", "strokeStyle": "dashed", "startBinding": {"elementId": "c", "focus": 0, "gap": 5}, "endBinding": {"elementId": "a", "focus": 0, "gap": 5}},
-    {"id": "arr3-label", "type": "text", "x": 380, "y": 60, "width": 60, "height": 20, "text": "return", "fontSize": 12, "fontFamily": 1, "textAlign": "center"}
+    {"id": "arr3-label", "type": "text", "x": 380, "y": 60, "width": 60, "height": 20, "text": "return", "fontSize": 12, "fontFamily": 4, "textAlign": "center"}
   ],
   "appState": {"viewBackgroundColor": "#ffffff"},
   "files": {}
@@ -267,7 +267,7 @@ Arrow analysis:
 ## Notes
 
 - IDs must be unique across the file
-- `fontFamily`: 1=Virgil (hand-drawn), 2=Helvetica, 3=Cascadia, 4=Comic Shanns (recommended for hand-drawn style)
+- `fontFamily`: 1=Virgil, 2=Helvetica, 3=Cascadia, 4=Comic Shanns (MUST use for hand-drawn style)
 - `strokeWidth` usage in software diagrams:
   - `1` (thin): background regions, container borders, secondary connections
   - `2` (normal/default): primary components, main flow arrows
