@@ -74,10 +74,34 @@ Before diving into source code, understand the core difference:
 > Vertical separates key columns from others (memory = single column at a time).
 ```
 
-### 4. Technical Accuracy
+### 4. Technical Accuracy & Source Code vs Knowledge Balance
+
+#### When to Explore Source Code (MUST)
+Explore source code for **project-specific implementation details**:
+- Specific code logic, conditions, and data structures
+- Configuration parameters and their default values
+- File paths and line numbers for citations
+- Implementation variants (e.g., Wide vs Compact formats)
+- Internal APIs and function signatures
+
+**Example**: How `_source_0` and `_meta_0` are constructed in TSearchEngine → MUST read `tsearch.cpp`
+
+#### When to Use Knowledge/Memory (OK)
+Use existing knowledge for **standard protocols and general concepts**:
+- Standard protocol syntax (e.g., Elasticsearch DSL, HTTP, SQL)
+- Well-known algorithms and data structures (e.g., B+ tree, inverted index)
+- Industry-standard practices and patterns
+- Public documentation content (e.g., ES official docs)
+- Background context and conceptual explanations
+
+**Example**: Elasticsearch `_source` field syntax (`"_source": ["field"]` vs `"_source": {"includes": [...]}`) → OK to use knowledge
+
+> 💡 **Key Point**: Don't waste time searching source code for information that's not in the project (e.g., ES DSL syntax in a ClickHouse project). Focus source code exploration on project-specific implementation.
+
+#### General Accuracy Rules
 - Avoid marketing language; use precise terms
 - Back claims with data or code references
-- Explore source code before writing; don't write from memory
+- When in doubt about project-specific details, explore source code
 
 **Bad**: "This revolutionary optimization achieves incredible gains"
 **Good**: "V2 reduces order restoration from O(n log n) to O(n) by using inverted_permutation"
@@ -192,11 +216,24 @@ Brief summary: what this section covers and why it matters.
 [Transition to next section]
 ```
 
-### 12. Thorough Code Exploration
-- Don't write from memory; always explore source code first
+### 12. Code Exploration Strategy
+
+#### For Project-Specific Implementation
+- Always explore source code for project-specific details
 - Look for implementation variants (e.g., Wide vs Compact formats)
 - Check for configurable behaviors and their settings
 - Identify the "why" behind design choices by reading comments and commit history
+- Cite file paths and line numbers for all code references
+
+#### For Standard Protocols and Concepts
+- Use existing knowledge for well-documented standards (ES DSL, HTTP, SQL)
+- Reference official documentation when needed
+- Focus exploration time on project-specific adaptations, not the standard itself
+
+**Example**: When documenting how TSearchEngine handles ES `_source` filtering:
+- ✓ Explore: How `_source_0` and `_meta_0` are constructed (project-specific)
+- ✓ Use knowledge: ES DSL `_source` syntax variations (standard protocol)
+- ✗ Don't waste time: Searching TSearchEngine code for ES DSL syntax definitions
 
 ## Document Structure
 
@@ -250,7 +287,7 @@ Brief intro + why it matters.
 | Code without thinking prompts | Add Key Point, Think About, and Terminology callouts |
 | Flat section structure | Use hierarchical organization: overview → details → summary |
 | Writing for experts only | Define terms; explain "why" not just "what" |
-| Relying on memory | Always verify against source code; cite file:line |
+| Relying on memory for project-specific details | Verify project implementation in source code; use knowledge for standard protocols/concepts |
 | **Fabricated performance data** | **NEVER invent specific numbers (compression ratios, speeds) without actual tests or citations** |
 | **Undefined concepts used** | **Add concept introduction section (§X.Y.1) before implementation details; use ⏭️ navigation hints** |
 | **Missing big picture** | **Add unified visual comparison before diving into multiple related approaches** |
