@@ -1,17 +1,18 @@
 ---
 name: tech-blog
-description: Write technical blog posts with source code analysis. Use when user wants to explain system internals, implementation details, or technical concepts with code references.
+description: Write technical blog posts with source code analysis OR doc-driven research. Use when user wants to explain system internals, architecture, implementation details, or technical concepts with citations.
 ---
 
 # Technical Blog Writing Skill
 
-Write technical blog posts that explain system internals and source code implementation.
+Write technical blog posts that explain system internals, architecture, and implementation details.
 
 ## When to Use
 
 - Explaining system internals or implementation details
 - Source code analysis and walkthrough
 - Comparing different implementations or approaches
+- Doc-driven architecture/comparison posts (no source code in scope)
 
 ## Core Principles
 
@@ -47,32 +48,9 @@ Text index segments are merged in Stage2...
 
 ### 3. Big Picture First (整体图景优先)
 Before explaining multiple related concepts in detail, provide a unified visual overview:
-- **Add comparison diagrams**: When explaining 2+ related approaches (e.g., Horizontal vs Vertical merge), start with a side-by-side diagram
+- **Add comparison diagrams**: When explaining 2+ related approaches, start with a side-by-side diagram (prefer Mermaid; use ASCII/table for complex comparisons)
 - **Show the complete flow**: Include all stages/phases in one diagram, even if some are explained later
-- **Highlight key differences**: Use the diagram to show WHERE the approaches diverge
-
-**Example**:
-```markdown
-#### 5.4.2.1 Horizontal vs Vertical: Visual Comparison
-
-Before diving into source code, understand the core difference:
-
-┌─────────────────────┐  ┌─────────────────────────────────────┐
-│   Horizontal Merge   │  │         Vertical Merge              │
-├─────────────────────┤  ├─────────────────────────────────────┤
-│  Stage 0:           │  │  Stage 0: key columns only          │
-│  - Read ALL columns │  │  - Read key columns                 │
-│  - Merge sort       │  │  - Merge sort → write rows_sources  │
-│  - Write ALL columns│  │  - Write key columns                │
-│                     │  │                                     │
-│  (Stage 1 skipped)  │  │  Stage 1: per-column gather         │
-│                     │  │  - For each non-key column:         │
-│                     │  │    read → reorder → write           │
-└─────────────────────┘  └─────────────────────────────────────┘
-
-> 💡 **Key Difference**: Horizontal processes all columns together (memory = all columns).
-> Vertical separates key columns from others (memory = single column at a time).
-```
+- **Highlight key differences**: Use the diagram or table to show WHERE the approaches diverge
 
 ### 4. Technical Accuracy & Source Code vs Knowledge Balance
 
@@ -97,6 +75,30 @@ Use existing knowledge for **standard protocols and general concepts**:
 **Example**: Elasticsearch `_source` field syntax (`"_source": ["field"]` vs `"_source": {"includes": [...]}`) → OK to use knowledge
 
 > 💡 **Key Point**: Don't waste time searching source code for information that's not in the project (e.g., ES DSL syntax in a ClickHouse project). Focus source code exploration on project-specific implementation.
+
+#### When to Use Official Docs / Engineering Blogs (MUST)（无源码：文档驱动）
+Use doc-driven research when **you don't have source code** (or the topic is product architecture/features rather than an implementation):
+- Product comparisons (e.g., HBase vs Elasticsearch vs ClickHouse vs Rockset vs Lindorm)
+- Architecture deep dives based on published docs/blogs
+- Feature/behavior audits (defaults, limitations, trade-offs)
+
+**Doc-driven workflow (checklist)**:
+1. **Extract a claim list**: every non-trivial statement that can be wrong (defaults, limitations, “supports X”, “needs reindex”, “writes are amplified”, etc.).
+2. **Find authoritative sources** per claim (priority: official docs → vendor engineering blogs → reputable community summaries).
+3. **Cite at the claim location** (not only in “References”): use a consistent in-text marker like `（来源：[Label]）`.
+4. **Use reference-style links** for maintainability: define `[Label]: https://...` once at the end; reuse labels throughout.
+5. **Separate fact vs inference**: if you infer (“likely”, “often”, “in practice”), label it as inference and still cite supporting docs when possible.
+6. **Never fabricate numbers**: mark metrics as examples or provide benchmark citations.
+7. **Do a link & claim audit** before finalizing:
+   - all referenced labels are defined (no dead refs)
+   - no raw URLs scattered in正文 (prefer labels)
+   - terminology matches official docs (avoid overloaded terms like “wide-column == column store”)
+
+**Lessons learned / gotchas**:
+- Avoid over-strong equivalence: “A == B” is rarely true for products; prefer “both are based on X, but differ in Y”.
+- Avoid scraping search engines via shell (CAPTCHA/blocks); prefer a dedicated web search tool (e.g., `web.run`) and then open official domains.
+- Don’t rely on community posts as the only source for load-bearing claims; treat them as secondary.
+- “Default behavior” claims are high-risk (versions/configs differ) → always cite the exact doc page and wording.
 
 #### General Accuracy Rules
 - Avoid marketing language; use precise terms
@@ -193,28 +195,10 @@ Use callout boxes to highlight important insights:
 
 ### 11. Section Organization (Summary-Detail Pattern)
 - Start each major section with a brief summary
-- Follow with an overview diagram (ASCII art)
+- Follow with an overview diagram (prefer Mermaid)
 - Then dive into detailed subsections
 - Use data flow order, not code structure order
 - Add transition sentences between sections
-
-**Structure Pattern**:
-```markdown
-## N. Topic Name
-Brief summary: what this section covers and why it matters.
-
-### N.1 Overview
-[ASCII diagram showing the big picture]
-[1-2 sentences explaining the diagram]
-
-### N.2 First Subtopic
-[Details with code examples]
-[Key point callout]
-
-### N.3 Second Subtopic
-[Details with code examples]
-[Transition to next section]
-```
 
 ### 12. Code Exploration Strategy
 
@@ -264,7 +248,9 @@ Brief intro + why it matters.
 - Explain what it does, not just show it
 
 ### Diagrams
-- ASCII for simple flows; every diagram needs explanation text
+- **Prefer Mermaid** for flowcharts, architecture diagrams, and sequence diagrams (better rendering, maintainable)
+- Use ASCII art only when Mermaid cannot express the visualization (e.g., complex comparison tables, custom layouts)
+- Every diagram needs explanation text
 
 ### Tables
 - Use for comparisons, performance data, component summaries
@@ -293,6 +279,8 @@ Brief intro + why it matters.
 | **Missing big picture** | **Add unified visual comparison before diving into multiple related approaches** |
 | **Abstract concepts without examples** | **Use concrete data examples (e.g., inverted index with actual words and row numbers)** |
 | **Scattered concept definitions** | **Consolidate repeated concepts into ONE authoritative section; reference it elsewhere** |
+| **Summary misaligned with doc purpose** | **Match summary to document goal: research doc → user needs & implementation requirements; selection guide → product recommendations** |
+| **Missing scope statement** | **Add explicit scope callout (📌) in introduction: what's covered, what's out of scope** |
 
 ## Concept Consolidation (DRY Principle)
 
