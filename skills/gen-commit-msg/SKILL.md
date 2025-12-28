@@ -282,6 +282,21 @@ User: Commit the fix for the bulk API newline issue
 - Auto-commit without confirmation
 - Use past tense (added, fixed, updated)
 
+## Git Tags
+
+When user requests creating a tag (for CI/CD pipeline trigger, release, etc.):
+
+1. **Check existing tag format first**:
+   ```bash
+   git tag --sort=-creatordate | head -5
+   ```
+
+2. **Keep format consistent** - DO NOT add 'v' prefix unless project already uses it:
+   - If existing: `0.4.0`, `0.3.0` → use `0.4.1` (no 'v')
+   - If existing: `v0.4.0`, `v0.3.0` → use `v0.4.1` (with 'v')
+
+3. **Never assume tag format** - always verify from existing tags
+
 ## Notes
 
 - Optimizes for speed by using context when available
