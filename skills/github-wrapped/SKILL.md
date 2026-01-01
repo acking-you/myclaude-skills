@@ -1,11 +1,11 @@
 ---
 name: github-wrapped
-description: Generate a verifiable GitHub Wrapped year-in-review as a single-file HTML (raw gh API JSON saved, Python dataset build, embedded dataset), with a Bilibili-style narrative and smooth animations. Requires gh CLI to be authenticated.
+description: Generate a verifiable GitHub Wrapped year-in-review as a single-file HTML (raw gh API JSON saved, Python-built dataset embedded), with a Bilibili-style narrative, smooth transitions, and mobile-friendly paged mode. Requires gh CLI to be authenticated.
 ---
 
 # GitHub Wrapped (Single-file HTML, Verifiable Data)
 
-This skill generates a GitHub “Year in Review / Wrapped” as a **single self-contained HTML file** with a **Bilibili-style narrative** (scroll/page scenes, cinematic transitions, share card). The non-negotiable requirement is **verifiability**: every number must be traceable to saved `gh api` raw responses.
+This skill generates a GitHub “Year in Review / Wrapped” as a **single self-contained HTML file** with a **Bilibili-style narrative** (scroll/page scenes, cinematic transitions, share card). The non-negotiable requirement is **verifiability**: every number must be traceable to saved `gh api` raw responses committed alongside the report.
 
 ## Non-negotiables
 
@@ -13,6 +13,7 @@ This skill generates a GitHub “Year in Review / Wrapped” as a **single self-
 - **Save raw API responses**: the report is invalid without a `raw/` folder containing the original JSON (and the GraphQL queries used).
 - **Ship one `.html`**: no runtime `gh` calls; embed a dataset into the HTML.
 - **External CDNs are optional** (fonts/icons/screenshot libs/music) but must never break core navigation/rendering if they fail to load.
+- **Build step-by-step**: start with a tiny scaffold (≤ ~400 LOC) and iterate towards a 5k–10k LOC finished report; never try to ship the full “final” file in one pass.
 
 ## What to ask the user first
 
@@ -69,6 +70,8 @@ Write a builder that reads only `raw/*.json` and outputs `processed/dataset.json
 Template: `scripts/build_dataset_template.py`
 Schema guidance: `references/dataset_schema.md`
 
+For larger analysis recipes (stars-by-month scatter points, timezone-safe hour buckets, holiday detection, category heuristics), see `cookbook/python/`.
+
 ### 3) Embed `dataset.json` into the HTML (no runtime fetch)
 
 Your HTML must contain a stable anchor:
@@ -85,6 +88,49 @@ Embed rules:
 
 Template: `scripts/embed_dataset_into_html_template.py`
 
+## Step-by-step delivery (400 LOC → 10k LOC)
+
+Single-file cinematic reports get long fast. To stay correct and maintainable, **ship in iterations**:
+
+- **Iteration 0 (contract)**: agree on a minimal `dataset.json` schema and render placeholders (show `—` for missing fields).
+- **Iteration 1 (≤ 400 LOC)**: build the skeleton: cover + “Start”, 2–3 scenes, nav mode toggle stub, dataset parse with a visible failure overlay.
+- **Iteration 2 (≤ 1.5k LOC)**: implement the navigation engine (paged/free), reveal system, and a basic card/list system.
+- **Iteration 3 (≤ 4k LOC)**: add core charts (heatmap, tower, radar), but keep them simple and verifiable.
+- **Iteration 4 (≤ 7k LOC)**: add mobile paged-mode strategy (hide heavy blocks via `data-mhide="paged"` + bottom-sheet that moves DOM nodes).
+- **Iteration 5 (≤ 10k LOC)**: polish (motion tokens, full-screen HUD, share card, optional music/fireworks), and do a regression pass for desktop + mobile.
+
+Keep this file (SKILL.md) **high-level**. Put long code samples and analysis recipes into `cookbook/` and implementation notes into `references/` to avoid prompt bloat.
+
+## Single-file HTML engineering notes (battle-tested)
+
+- **Boot layer**: always include an explicit “Start” button; do not rely on scroll-only starts.
+- **Two navigation modes**: `paged` (wheel/keys, plus touch swipe on mobile) and `free` (normal scroll).
+- **Mobile paged mode**: each scene must fit one viewport; hide heavy blocks via `data-mhide="paged"` and open them in a bottom-sheet that moves existing DOM nodes (avoid duplicate IDs).
+- **Touch affordances**: heatmap tap → toast; radar touchstart → point lift + tooltip.
+
+See `references/single_file_engineering.md` for deeper patterns.
+
+## Responsive UX (Desktop + Mobile) — hard-won lessons
+
+The page is one file, but it’s effectively two products: **desktop cinematic** and **mobile slide deck**. Treat responsive work as **surgically isolated** changes to avoid regressions.
+
+### Desktop (readable without full-screen)
+
+- Prefer a wide-but-bounded content column (`--maxw` as a `clamp()`), and reduce `--gutter` slightly on short viewports (e.g. 768px height) instead of shrinking typography.
+- Use **density variants** rather than truncating content:
+  - Multi-column lists for long leaderboards (keep metadata visible).
+  - “Dense” list styling (tighter padding/gaps) for better above-the-fold readability.
+- Avoid CSS-stretching canvases (radar charts): size canvas from its rendered rect and DPR, or enforce an `aspect-ratio` and draw in CSS pixels.
+- If a 3D/transform section makes buttons unclickable, assume a stacking-context problem first (z-index + transforms + pointer-events).
+
+### Mobile (paged-mode = slide deck)
+
+- Gate layout changes with `@media (max-width: 620px) and (pointer: coarse)` (width-only rules can accidentally affect small desktop windows).
+- In mobile `paged` mode, avoid inner scrolling in scenes; hide heavy blocks with `data-mhide="paged"` and expose them via a bottom-sheet modal that **moves the existing DOM node** (so IDs and event listeners remain valid).
+- Use touch-first affordances: tap feedback (toast), big hit targets, and optionally draggable floating controls (mode toggle / music) respecting safe-area insets.
+
+For implementation patterns (bottom sheet node-moving, draggable HUD controls, canvas DPR sizing, and stacking-context pitfalls), see `references/responsive_ui_patterns.md`.
+
 ## Narrative + UI quality bar (Bilibili-style pacing)
 
 Design as a storyboard: each scene answers **one** question, then transitions.
@@ -95,8 +141,8 @@ Suggested pacing:
 2. “How long since we met GitHub” (account createdAt → years)
 3. “Your 2025 pulse” (activity tier + distribution)
 4. Heatmap/city + streak + craziest day
-5. “Time Tower” (your key projects this year)
-6. “Radar / hexagon” (categories; hover nodes should lift/glow)
+5. “Time Tower” (12 months; month selector + star-time scatter points)
+6. “Radar / hexagon” (categories; points lift/glow on hover or touch)
 7. “New interests unlocked” (2025 stars vs previous years)
 8. “Extreme moments” (night-owl / holidays; clearly mark best-effort)
 9. “Open Source Award” (external contribution highlight; award ceremony feel)
@@ -105,7 +151,7 @@ Suggested pacing:
 Interaction rules:
 
 - Every button/card should be clickable with feedback (links when available; otherwise micro-interaction/toast).
-- “Free scroll” vs “Page mode” must behave differently (page mode should snap/lock navigation by wheel/keys).
+- “Free scroll” vs “Page mode” must behave differently (page mode should snap/lock navigation by wheel/keys, and support touch swipe on mobile).
 - Unify motion tokens (duration/easing) across scenes; prefer `transform/opacity`.
 
 ## Known data limits (must disclose)
@@ -126,4 +172,5 @@ See `references/debug_checklist.md` for the full checklist. Common root causes:
 ## Bundled resources (progressive disclosure)
 
 - `scripts/`: reusable collection/build/embed templates (execute without loading into context)
+- `cookbook/`: analysis recipes and larger Python snippets (open only what you need)
 - `references/`: schema + storyboard + debugging notes (open only the specific file you need)

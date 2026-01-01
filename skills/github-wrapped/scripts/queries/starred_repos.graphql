@@ -1,10 +1,6 @@
 query($user: String!, $endCursor: String) {
   user(login: $user) {
-    starredRepositories(
-      first: 100
-      after: $endCursor
-      orderBy: {field: STARRED_AT, direction: DESC}
-    ) {
+    starredRepositories(first: 100, after: $endCursor, orderBy: {field: STARRED_AT, direction: DESC}) {
       edges {
         starredAt
         node {
