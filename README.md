@@ -27,6 +27,8 @@ Run `./install.sh help` for more options.
     ├── gemini-image/       # Gemini image generation
     ├── gen-commit-msg/     # Auto-generate commit messages
     ├── git-squash-commits/ # Squash commits
+    ├── github-wrapped/     # GitHub year-in-review generator
+    ├── research/           # Technical research with citations
     ├── tech-blog/          # Technical blog post generation
     └── tech-design-doc/    # Technical design doc generation
 ```
