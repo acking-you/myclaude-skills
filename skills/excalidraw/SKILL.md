@@ -49,6 +49,8 @@ Generate professional hand-drawn style diagrams in Excalidraw JSON format.
    - When multiple sub-containers need to merge arrows to a shared target below, calculate: `target.y >= max(child.y + child.height) + 60`
    - If arrow crossing occurs after generation, increase container heights rather than using complex bypass paths
 
+10. **SVG export requests (MUST follow)**: If the user asks for SVG output/conversion, ALWAYS convert the generated `.excalidraw.json` file via `https://kroki.io/excalidraw/svg` using `curl`.
+
 ## Mandatory Workflow (MUST follow before writing JSON)
 
 **Step 1: Arrow Path Analysis**
@@ -263,6 +265,22 @@ Arrow analysis:
 - Filename: `{descriptive-name}.excalidraw.json`
 - Location: project root or `docs/` folder
 - Tell user: drag into https://excalidraw.com or open with VS Code Excalidraw extension
+
+### SVG conversion via Kroki (when user asks for SVG)
+
+If user explicitly asks for SVG (e.g., "convert to svg", "need svg export"), convert with this command:
+
+```bash
+curl -sS https://kroki.io/excalidraw/svg \
+  -H 'Content-Type: application/json' \
+  --data-binary @diagram.excalidraw.json \
+  -o diagram.svg
+```
+
+Notes:
+- Input must be a valid Excalidraw JSON file (`*.excalidraw.json`)
+- Keep both outputs: source JSON + exported SVG
+- If user asks for SVG, do not skip this conversion step
 
 ## Notes
 
