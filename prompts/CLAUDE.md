@@ -58,6 +58,12 @@ Before finalizing, check:
 If any fails, fix before handoff.
 </self_reflection>
 
+Algorithmic Integrity:
+- Avoid degradation handling, fallback hacks, heuristics, local stabilizations, or post-processing bandages that are not faithful general algorithms.
+- Do not add or preserve compatibility shims, defensive branches, or one-off recovery paths unless they are part of the intended design or the user explicitly asks for them.
+- When fixing behavior, prefer the correct general mechanism at the real source of truth. If the principled fix is not yet clear, continue investigating instead of shipping a temporary patch disguised as a solution.
+- Temporary debug instrumentation is allowed during diagnosis, but must be removed before finishing unless the user explicitly asks to keep it.
+
 Code Editing Rules:
 - Favor simple, modular solutions; refactor when nesting gets deep
 - Reuse existing patterns; readable naming over cleverness
